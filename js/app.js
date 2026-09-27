@@ -386,7 +386,7 @@
     rows.push(['Magnetic', magRow[0], magRow[1]]);
     if (Light.ok) rows.push(['Light', 'ok', `<b>${Math.round(Light.lux)} lux</b> · light sensor`]);
     rows.push(['Orientation', Heading.ok ? 'ok' : '', Heading.ok ? `<b>on</b> · facing ${Math.round(Heading.yaw)}°, tilt ${Math.round(Heading.pitch)}° · turn-by-turn directions`
-      : Native.available || 'RelativeOrientationSensor' in window ? 'available · starts with a full room scan' : 'not available: the agent steers by what it sees']);
+      : Native.available || 'RelativeOrientationSensor' in window ? 'available · starts with a full room scan' : 'not available: guidance follows what the camera sees']);
     rows.push(['Radio', Radio && Radio.available ? 'ok' : '', Radio && Radio.available ? '<b>Wi-Fi, Bluetooth, network scans</b> · in the app' : 'needs the TwinGaze Android app']);
     const gdb = Guard && Guard.dbInfo ? Guard.dbInfo() : null;
     rows.push(['Phone check', Guard && Guard.available ? 'ok' : '', (Guard && Guard.available ? '<b>ready</b> · ' : 'needs the TwinGaze Android app · ') + (gdb ? `${gdb.stalkerware + gdb.watchware} known spyware apps` : 'list missing')]);
@@ -2824,7 +2824,7 @@ ${letterText ? `<h2>Complaint</h2><pre>${esc(letterText)}</pre>` : ''}
       tags: ['Plan → survey → inspect → report', 'Orientation sensor', 'Room memory'],
       good: 'Nothing gets skipped: coverage map, ceiling, every hiding spot', lim: 'Turn angles drift a few degrees a minute; it re-aims by the picture' },
     { g: 'g-cyan', icon: 'i-eye', name: 'Camera recogniser', uses: 'A camera-shape model we trained',
-      p: 'Recognises cameras by their shape (CCTV domes, bullets, PTZ, webcams) and phones, even with the lights on. A phone can record like any camera, so the agent walks you to it and tests its lens with the flash: a lens glint on a phone means its camera faces you. Every other check zooms into the middle of the picture (2x, then 4x) at the camera\'s full resolution, so a small or far camera you point at gets up to 4x the pixels; anything camera-like makes it say "hold on it". A box counts after it shows up in 3 of the last 6 looks that could see it, at 50% or more.',
+      p: 'Recognises cameras by their shape (CCTV domes, bullets, PTZ, webcams) and phones, even with the lights on. A phone can record like any camera, so TwinGaze walks you to it and tests its lens with the flash: a lens glint on a phone means its camera faces you. Every other check zooms into the middle of the picture (2x, then 4x) at the camera\'s full resolution, so a small or far camera you point at gets up to 4x the pixels; anything camera-like makes it say "hold on it". A box counts after it shows up in 3 of the last 6 looks that could see it, at 50% or more.',
       tags: ['YOLO11s · 9.4 M parameters', 'Cameras · smoke detectors · phones', '2x + 4x zoomed looks', 'ONNX Runtime · GPU'],
       good: 'Security cameras, and phones left in the room to record', lim: 'A pinhole in a clock looks like a clock: that is the glint test\'s job' },
     { g: 'g-blue', icon: 'i-flash', name: 'Lens glint', uses: 'Flash + camera + gyroscope',
@@ -2844,7 +2844,7 @@ ${letterText ? `<h2>Complaint</h2><pre>${esc(letterText)}</pre>` : ''}
       tags: ['IEEE maker registry', 'AirTag · Tile · SmartTag', 'RTSP · ONVIF'],
       good: 'Wi-Fi cameras and trackers anywhere nearby', lim: 'A camera that records to a memory card sends nothing' },
     { g: 'g-teal', icon: 'i-grid', name: 'Room objects', uses: 'An object model',
-      p: 'Names what is in view (clock, frame, smoke detector, socket, mirror, lamp, person) so the agent knows which hiding spots are in the room and ticks each one off once it has been checked with the flash.',
+      p: 'Names what is in view (clock, frame, smoke detector, socket, mirror, lamp, person) so TwinGaze knows which hiding spots are in the room and ticks each one off once it has been checked with the flash.',
       tags: ['YOLOv8n · Open Images', '49 room objects'],
       good: 'Making sure every hiding spot gets checked', lim: 'It names objects; it can\'t see inside them' },
     { g: 'g-green', icon: 'i-phonecheck', name: 'Phone check', uses: 'Installed apps and settings · in the app',
@@ -3430,7 +3430,7 @@ ${letterText ? `<h2>Complaint</h2><pre>${esc(letterText)}</pre>` : ''}
   step('fonts', () => (window.requestIdleCallback || (f => setTimeout(f, 2500)))(() => {
     try { document.fonts.load('500 14px "Noto Sans Devanagari"', 'हिंदी'); document.fonts.load('500 14px "Noto Sans Telugu"', 'తెలుగు'); } catch (e) { /* no FontFace API */ }
   }));
-  step('log', () => { $('#log').innerHTML = '<li class="empty">Start a full room scan. The agent’s plan, every tool it runs and every decision show up here.</li>'; });
+  step('log', () => { $('#log').innerHTML = '<li class="empty">Start a full room scan. Each step and every check show up here.</li>'; });
   boot();
 
   if (!Native.available && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

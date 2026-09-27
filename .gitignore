@@ -21,9 +21,7 @@ android-app/android/build/
 android-app/android/.gradle/
 android-app/android/local.properties
 
-# the built app is attached to a GitHub release instead of being stored in the code
-dist/
-*.apk
+# dist/TwinGaze.apk is kept on purpose: it is the app to download
 
 # system files
 .DS_Store
