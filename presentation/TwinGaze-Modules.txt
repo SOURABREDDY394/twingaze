@@ -1,0 +1,486 @@
+TWINGAZE 3.2.3 - MODULES, MODELS AND TECHNOLOGY
+Team Ragnarok - iQOO Hackathon 2026, Hyderabad
+Anshul Nautiyal (team lead) - Prathibha Rani Patra - Sourab Reddy
+=====================================================================================
+
+What TwinGaze is, in one line:
+  An Android app (and the same app as a website) that finds hidden cameras - and, up close, other
+  hidden electronics such as audio recorders and trackers - with the phone's own camera, flash and
+  sensors, guides you by voice in English / Hindi / Telugu, keeps tamper-proof evidence, and helps
+  you get safe. Everything runs on the phone. Nothing is uploaded.
+
+Size of the project:
+  JavaScript (app logic)     ~7,000 lines in 15 modules (js/)
+  Java (Android native)      ~3,400 lines in 7 classes
+  HTML + CSS                 ~1,200 lines (index.html, css/app.css)
+  Automated tests            6 test files, 83 tests (tests/)
+  AI models                  2 on the phone (camera detector 36 MB, room objects 13.5 MB)
+  APK                        dist/TwinGaze.apk, ~60 MB (models + reference video included)
+
+
+-------------------------------------------------------------------------------------
+A. THE PROBLEM WE SOLVE: TODAY'S TOOLS ARE SCATTERED
+-------------------------------------------------------------------------------------
+  Hidden cameras and recorders are cheap, tiny and hard to see, and ordinary people have no
+  reliable way to check a room (PG, hostel, hotel, rental, trial room). Today the tools are
+  scattered across many single-purpose apps, and none can be trusted alone:
+
+  Today: a separate app for each   The problem with it                  In TwinGaze
+  -------------------------------  -----------------------------------  ------------------------------------
+  Magnetic-field detector          beeps near any electronics:          one of four signals; finds hidden
+                                   false alarms, no trust               electronics up close (cameras, audio
+                                                                        recorders, trackers); never calls a
+                                                                        camera on magnetism alone
+  IR / camera-finder               you stare at the screen and judge    night vision + lens glint, tested
+                                                                        automatically
+  Wi-Fi / network scanner          technical lists, no meaning          camera hotspots, cameras on the
+                                                                        network, "is this Wi-Fi private?"
+  Bluetooth tracker finder         only one kind of device              AirTag, Tile, SmartTag, BT cameras
+  Antivirus / spyware scanner      doesn't say who is watching          stalkerware, tracker SDKs, apps
+                                                                        using the camera or mic
+  SOS / fake-call app              yet another app to install           SOS, fake call, siren, location
+  (nothing)                        no guidance, no proof                AI shape recognition, voice guide in
+                                                                        3 languages, evidence + complaint
+
+  What we solve: ONE app that checks the room, the network and your own phone, combines the signals
+  so they confirm each other, guides you by voice in your language, and keeps evidence and gets you
+  help. All offline, on the phone.
+
+
+-------------------------------------------------------------------------------------
+B. EVERY FEATURE IN THE APP
+-------------------------------------------------------------------------------------
+  FIND CAMERAS AND HIDDEN DEVICES
+    Full room scan         the agent runs every detector and walks you round the room
+    Camera shape AI        CCTV, dome, bullet cameras; phones used as cameras; laptop webcams
+    Lens finder            the flash glint of a hidden lens (5-step test chain)
+    Night vision           infrared LEDs of night cameras (lights off)
+    Magnetic detector      cameras, audio recorders, trackers and other powered electronics, up
+                           close; beeper + dial; "Device detected" past +25 uT (it can't tell which
+                           device it is, so it says "check this spot")
+    Mirror test            fingernail, flashlight and knock tests for two-way mirrors
+    "In view"              names hiding spots (clock, frame, socket, smoke detector...) and ticks
+                           them off the room checklist; "What's here?" reads them out
+    Recorded video         frame-by-frame analysis; the hackathon hall is built in as a reference
+                           video with a "Reference check" (2 of 2 cameras)
+  RADIO AND NETWORK
+    Wi-Fi scan             camera hotspots (HD-xxxx, IPCAM, V380...) and camera makers' radios
+    Bluetooth scan         AirTag, Tile, SmartTag trackers and Bluetooth cameras
+    Network scan           cameras on the Wi-Fi you joined (RTSP / ONVIF / DVR ports)
+    Network check          is this Wi-Fi private? evil twin, open / WEP, proxy, captive portal,
+                           VPN / Private DNS (who can see your browsing), devices on the Wi-Fi
+  YOUR OWN PHONE
+    Phone check            158 known stalkerware / monitoring apps, hidden apps, accessibility /
+                           device-admin abuse, security settings, one-tap uninstall
+    App trackers           ~60 tracking / advertising SDKs inside your apps
+    Camera and mic         which app is using them right now; alert if used while the screen is off
+  PERSONAL SAFETY
+    SOS                    power button pressed 3 times (even locked), a hard shake, the Quick
+                           Settings tile, or the notification button -> 5 s countdown -> SMS with
+                           your location to your trusted contact -> "Call 112"
+    Fake call ("secret     your phone rings with its own ringtone and a real-looking call screen,
+      call")               now or after 10 s / 30 s / 1 min, even with the phone locked
+    Siren                  loud alarm on the alarm channel with the flash blinking
+    Share my location      a map link plus what TwinGaze found in the last 12 hours
+    Helplines              112 emergency - 181 women - 1930 cyber crime
+    Protection outside     a background service keeps SOS, fake call and privacy alerts working
+      the app              when TwinGaze is closed
+  EVIDENCE AND REPORT
+    Evidence               time-stamped photo + SHA-256 fingerprint; evidence locker; history
+    Report                 agent verdict + complaint in English / Hindi (BNS 2023 s.77,
+                           IT Act s.66E, 1930, cybercrime.gov.in)
+    Send to laptop         one HTML report via vivo Office Kit; album sync; shared clipboard
+  EASE OF USE
+    Voice guide            English / Hindi / Telugu; Off / Alerts / Guide; choose the voice
+    Discreet mode          dim, silent, guidance by vibration
+    Sensitivity            Sensitive / Balanced / Strict
+    Privacy                no account, no cloud, works in airplane mode
+
+
+-------------------------------------------------------------------------------------
+C. ARCHITECTURE AND FLOW CHARTS
+-------------------------------------------------------------------------------------
+C1. SYSTEM ARCHITECTURE
+
+  PHONE HARDWARE        ANDROID LAYER (Java)       TWINGAZE CORE (JavaScript)           OUTPUTS (on the phone)
+  +----------------+    +---------------------+    +--------------------------------+   +-----------------------+
+  | Camera + flash |    | Capacitor 8 bridge  |    | sensors.js, native.js          |   | Screen: boxes, arrows,|
+  | Magnetometer   |    | TwinNative          |    | detector.js (glint + tracking) |   |   coverage radar      |
+  | Gyro/orientat. |--->| TwinRadio           |<-->| recognizer.js + infer-worker.js|-->| Voice EN/HI/TE,       |
+  | Accelerometer  |    | TwinGuard           |    |   ONNX Runtime Web             |   |   beeper, vibration   |
+  | Light sensor   |    | TwinProtect+Service |    |   (WebGPU GPU / WASM CPU)      |   | Evidence: photo +     |
+  | Wi-Fi, BT LE   |    | SOS tile            |    |   [YOLO11s cameras]            |   |   SHA-256 (IndexedDB) |
+  | GPS            |    +---------------------+    |   [YOLOv8n room objects]       |   | Report + complaint    |
+  | Power button   |                               | agent.js (Coordinator+8 agents)|   | Office Kit -> laptop  |
+  | Camera/mic svc |                               | app.js (scan loop, UI, report) |   | SOS SMS -> contact    |
+  +----------------+                               | radio/net/guard/trackers.js    |   +-----------------------+
+                                                   | voice/audio/safety.js          |
+                                                   +--------------------------------+
+        Everything runs on the phone: no cloud, no account, nothing is uploaded.
+        The same JavaScript core also runs as the website (browser APIs replace the Android layer).
+
+C2. FLOW CHART: HOW A CAMERA IS CONFIRMED (three lanes on every frame)
+
+                         Live camera frame + sensors
+          +-------------------------+-------------------------+
+          |                         |                         |
+     GLINT (flash)             SHAPE (AI)                 MAGNETIC
+  1 Find tiny bright points   4 looks: whole / 2x /       Field vs the room baseline
+  2 Flash test --> x light      whole / 4x zoom           +8 uT at a glint --> 2nd sign
+  3 Sideways 6+ deg           YOLO11s: camera / smoke     +25 uT --> "Device detected"
+      --> x reflection          detector / phone            (camera / audio recorder /
+  4 Stays on its object?      Seen in 3 of last 6 looks?     tracker) --> "check this spot"
+      --> x reflection        70%+, or 50%+ and the
+  5 Flash test again            zoomed look agrees 2x
+          |                         |
+  < Second sign? >                  |
+   (camera shape / +8 uT /          |
+    phone or laptop at spot)        |
+     | no --> POSSIBLE LENS         |
+     |        (photo saved)         |
+     | yes                          | yes
+     +---------> CAMERA FOUND <-----+
+                     |
+     vibrate + chime + "Camera found. Do not touch it."
+                     |
+     photo + SHA-256 fingerprint, kept on the phone
+                     |
+     report: risk verdict, complaint, Office Kit --> laptop
+
+C3. FLOW CHART: THE AGENT'S FULL ROOM SCAN
+
+  Prepare --> Radio (background) --> Survey --> Inspect --> Report
+     |  every phase reads and writes ONE shared memory of the room:
+     |  Environment | Radio | Coverage (12 x 30 deg radar) | Scene | Glint | Magnetic
+     v
+  Navigator: "Turn right 60 deg, to the clock" --> "Move left" --> "Hold the flash on it"
+     v
+  You: voice (English / Hindi / Telugu), arrow on screen, vibration
+  Interrupt: a glint or a camera in view always takes over --> test --> confirm --> evidence
+             --> the plan carries on, so a second camera isn't missed
+
+C4. FLOW CHART: SOS AND FAKE CALL (works with the app closed)
+
+  Power button x3 (even locked) --+
+  Shake (screen on) --------------+--> 5 s countdown --> location fix --> SMS to trusted contact
+  Quick Settings "SOS" tile ------+    (vibration,       (8 s max, else    (map link + what TwinGaze
+  "SOS" on the notification ------+     Cancel)           the last one)     found) --> "Call 112"
+                                                          no SMS permission --> ready-to-send notification
+  Fake call: notification or SOS sheet (now / 10 s / 30 s / 1 min) --> phone's own ringtone +
+             incoming-call screen (even locked) --> Answer --> real-looking call screen with a timer
+
+C5. HOW THE CAMERA MODEL WAS MADE, AND HOW IT RUNS
+
+  Photos (~1,100 Commons + 306 phones + 238 look-alikes + hall false alarms)
+    --> auto-label (Google OWLv2 AND Grounding DINO must agree) --> dataset (camera, smoke detector, phone)
+    --> train YOLO11s (PyTorch, Ultralytics, RTX 5050, 100 epochs) --> held-out test (12/18, 0 false alarms)
+    --> export ONNX (36 MB) --> inside the APK --> Web Worker --> ONNX Runtime Web (WebGPU / WASM)
+    --> boxes back to the scan loop --> confirm rules (3 of 6 looks; 70%+, or 50%+ with the zoom agreeing 2x)
+
+
+-------------------------------------------------------------------------------------
+1. TECH STACK AT A GLANCE
+-------------------------------------------------------------------------------------
+  App (UI + logic)     HTML5, CSS, plain JavaScript (no framework). The same code is the
+                       Android app and the website (an offline PWA with a service worker).
+  Android shell        Capacitor 8 (@capacitor/core, /android, /cli). WebView app with custom
+                       native Java plugins. minSdk 24 (Android 7.0), target/compile SDK 36 (Android 16).
+  On-device AI         ONNX Runtime Web 1.30. WebGPU (phone GPU) when available, else WebAssembly
+                       SIMD (CPU). Runs in a Web Worker so the camera never waits.
+  Model training       Python, PyTorch, Ultralytics YOLO11, NVIDIA RTX 5050 laptop GPU (100 epochs).
+  Auto-labelling       Google OWLv2 + Grounding DINO (both must agree on every box).
+  Voice                Android text-to-speech (offline Indian voices), Web Speech in the browser.
+  Sound                Web Audio API (metal-detector beeper, alert chime).
+  Storage              IndexedDB (evidence, history) + localStorage (settings). On the phone only.
+  Evidence integrity   SHA-256 of every photo (Web Crypto API).
+  Build tools          Node.js 22 (build scripts), Gradle, JDK 21, Android SDK 36.
+  Phone <-> laptop     vivo Office Kit (it has no developer SDK, so TwinGaze uses its normal features:
+                       share sheet, album sync, shared clipboard, screen mirroring).
+  Website              Static files (site/), deployable to Netlify. Not deployed yet.
+
+
+-------------------------------------------------------------------------------------
+2. APP MODULES (JavaScript, js/) - what each one is for
+-------------------------------------------------------------------------------------
+js/app.js  (~3,300 lines)  THE APP
+  Screens (Home, Detectors, History, Settings, scan, report), the live scan loop, evidence scoring,
+  the glint test chain (flash test, sideways parallax, stays-on-its-object, second flash test,
+  magnetic), the camera-recogniser confirm rules and zoomed looks, on-screen boxes and arrows,
+  voice + arrow guidance, evidence photos with SHA-256, the report and the complaint letter,
+  recorded-video analysis and the built-in reference video, SOS / fake call / siren screens,
+  Protection-outside-the-app settings, network check and phone check screens.
+
+js/detector.js  (~300 lines)  GLINT DETECTOR + TRACKER
+  Finds tiny, bright, isolated points in each camera frame (a lens throwing the flash back, or a
+  night-vision LED) and follows each one from frame to frame. Also the "anchor" test: block
+  matching of the textured surface around a point, to tell a lens (moves with its object) from a
+  reflection (slides across a shiny surface). Pure JavaScript, no dependencies.
+
+js/recognizer.js  (~190 lines)  NEURAL NETWORKS ON THE PHONE
+  Loads both ONNX models with ONNX Runtime Web (WebGPU, else WebAssembly), letterboxes a frame or a
+  zoomed crop to 416x416, decodes the YOLO output, applies per-class thresholds and non-max
+  suppression. Each model has a JSON file with its input size, thresholds and classes.
+
+js/infer-worker.js  (~100 lines)  AI WORKER
+  Runs both models in a Web Worker, off the main thread. The page sends a small ImageBitmap of the
+  frame, the worker runs the model and returns only the boxes. The camera loop, glint tests, voice
+  and screen never wait for a model.
+
+js/agent.js  (~620 lines)  THE AGENT (Full room scan)
+  A rule-based Coordinator runs the scan as a plan: Prepare -> Radio -> Survey -> Inspect -> Report,
+  with specialist agents sharing one memory of the room:
+    Environment  reads light, flash, magnetometer, orientation; picks the strategy (lit / dark room)
+    Radio        Wi-Fi camera hotspots, Bluetooth trackers, cameras on the network (background)
+    Coverage     which directions were swept (12 x 30 degrees) + the ceiling; the mini radar
+    Scene        hiding spots named by the object model, with their direction in the room
+    Glint        bright points without a verdict, so you are walked back to them
+    Magnetic     every magnetic jump, with the direction you faced
+    Navigator    "Turn right 60 degrees, to the clock", "Move left", "Hold the flash on it"
+    Report       risk level (High / Check again / Low) with reasons
+  No LLM, no chatbot: deterministic rules, instant, offline.
+
+js/sensors.js  (~375 lines)  CAMERA AND SENSORS (web side)
+  Camera + flash (torch), exposure control, gyroscope, orientation, magnetometer (three ways: the
+  phone's sensor in the app, Chrome's Magnetometer API, or the compass method), light sensor,
+  screen wake lock. Every capability is detected at runtime; nothing is assumed or faked.
+
+js/native.js  (~110 lines)  BRIDGE TO ANDROID
+  Inside the app, reaches the TwinNative plugin: sensors, voice (speak, voice list, choose voice),
+  vibration, keep-awake, torch, siren, ringtone, saving to the gallery, share sheet, clipboard.
+  In a browser it does nothing and the web APIs are used instead.
+
+js/voice.js  (~370 lines)  VOICE GUIDANCE
+  Every spoken line in English, Hindi and Telugu, written like a navigation voice ("<What happened>.
+  <What to do>."). A speech manager with 4 priority levels (urgent / event / routine / info), one
+  line at a time, 0.55 s gaps, late lines dropped, a chime before "Camera found". Each step is
+  explained in full once per scan, then briefly or not at all. Modes: Off / Alerts / Guide.
+
+js/audio.js  (~60 lines)  BEEPER
+  Metal-detector style beeper (faster and higher as you get closer), two-tone alarm on a camera.
+
+js/radio.js  (~370 lines)  WI-FI / BLUETOOTH / NETWORK CLASSIFIERS
+  Decides what in the radio scans looks like a hidden camera or tracker: camera hotspot names
+  (HD-xxxx, IPCAM, V380...), camera makers' Wi-Fi chips (MAC prefixes), AirTag / Tile / SmartTag
+  Bluetooth signatures, camera ports on the local network (RTSP 554, ONVIF, Dahua 37777, XMEye 34567).
+
+js/net.js  (~140 lines)  NETWORK CHECK
+  Is the Wi-Fi private? Open / WEP / WPA2 / WPA3, evil twin (same name, no password), captive
+  portal, HTTP proxy, VPN, Private DNS, and devices on the Wi-Fi (reverse DNS names, UPnP, ONVIF).
+  Only reads what Android reports; sends no test traffic.
+
+js/guard.js  (~520 lines)  PHONE CHECK (spyware / stalkerware)
+  Scores every installed app: known stalkerware (package or signing certificate), no icon,
+  installed from outside a store, accessibility service, device admin, notification access,
+  camera / mic / location / SMS access; plus screen lock, patch age, USB debugging, root signs.
+
+js/spyware-db.js  (~200 lines)  KNOWN STALKERWARE LIST
+  131 stalkerware + 27 monitoring apps (names, package names, signing-certificate SHA-1), from
+  "Stalkerware Indicators of Compromise" by Echap (CC BY 4.0). Generated by tools/update-spyware-db.mjs.
+
+js/trackers.js  (~180 lines)  APP TRACKERS
+  ~60 tracking / advertising SDK signatures (session replay, location-data SDKs, attribution, ad
+  networks, analytics). The native plugin searches each app's code for them; this file explains
+  what each finding means.
+
+js/safety.js  (~170 lines)  SAFETY KIT
+  Trusted contacts, the SOS message (location + what TwinGaze found), siren with strobing flash,
+  fake incoming call, shake-to-SOS detector, and the wrapper for Protection outside the app.
+
+
+-------------------------------------------------------------------------------------
+3. ANDROID NATIVE MODULES (Java, android-app/android/app/src/main/java/in/teamragnarok/twingaze/)
+-------------------------------------------------------------------------------------
+MainActivity.java (16 lines)
+  The Capacitor activity; registers the TwinGaze plugins.
+
+TwinNativePlugin.java (~530 lines)  - phone features a web page can't reach
+  Methods: info, startSensor/stopSensor (magnetometer, light, orientation), speak, voices,
+  voiceList, setVoice, stopSpeaking, isSpeaking, vibrate, keepAwake, torch, siren, ringtone,
+  beginFile/appendFile/endFile (save photos, videos, reports to the gallery / Downloads), share,
+  copy, exitApp. Text-to-speech picks the best offline voice for the language and speaks on the
+  navigation audio channel; the siren plays on the alarm channel.
+
+TwinRadioPlugin.java (~1,050 lines)  - radio scans
+  Methods: wifiScan (nearby networks), netInfo (security type, captive portal, VPN, Private DNS,
+  proxy, DNS), bleScan (Bluetooth LE devices), lanScan (devices on the connected Wi-Fi: open camera
+  ports, ONVIF discovery, SSDP/UPnP descriptions, reverse DNS). Collects raw data only.
+
+TwinGuardPlugin.java (~840 lines)  - phone check
+  Methods: scan (installed apps, installers, signing certificates, dangerous permissions,
+  accessibility, device admin, notification access, security settings), trackers (searches every
+  app's classes*.dex with a byte trie for tracker SDK names), sensorsInUse (is any app using the
+  camera / recording audio right now), uninstall (Android's own uninstall dialog), isInstalled,
+  openAppSettings, openSettings.
+
+TwinProtectPlugin.java (~240 lines)  - the app's side of Protection outside the app
+  Methods: status, configure, start, stop, allow (asks for notifications / location / SMS),
+  testSos (runs the SOS without sending), fakeCall, allowBackground (battery optimisation), addTile.
+
+TwinProtectService.java (~690 lines)  - foreground service, works with the app closed
+  SOS by power button pressed 3 times in 3 s (screen off / locked too; ignored during calls) or a
+  hard shake while the screen is on -> 5 s countdown -> location -> SMS to the trusted contact
+  (or a ready-to-send notification) + "Call 112". Fake call with the phone's ringtone. Alerts: camera
+  or microphone used while the screen is off, a known spy app installed, open / WEP Wi-Fi or a proxy.
+
+TwinSosTile.java (~40 lines)  - "SOS" tile in Quick Settings; starts the SOS countdown.
+
+
+-------------------------------------------------------------------------------------
+4. AI MODELS
+-------------------------------------------------------------------------------------
+MODEL 1 - CAMERA DETECTOR (trained by us)          models/camera-detector.onnx + .json
+  Architecture   YOLO11s (Ultralytics), 9.4 million parameters, 36 MB ONNX, input 416 x 416
+  Classes        camera (CCTV, dome, bullet, PTZ, security) - smoke detector - phone
+  Training data  ~1,100 freely licensed Wikimedia Commons photos (CCTV / security cameras, rooms,
+                 ceilings, lamps, sprinklers, speakers, ~170 smoke detectors) + 306 phone photos
+                 + 238 phone look-alikes (remotes, calculators, power banks, walkie-talkies...)
+                 + real false alarms from the hackathon hall as hard negatives (desk cable hole,
+                 laptop-screen reflection, glossy sticker, stage wall)
+  Labelling      Two large open-vocabulary detectors, Google OWLv2 and Grounding DINO, had to agree
+                 on every camera box (automatic labelling, no hand labelling)
+  Training       100 epochs on an NVIDIA RTX 5050 laptop GPU (PyTorch + Ultralytics)
+  Held-out test  (photos never seen in training)
+                 cameras: 12 of 18 found, 0 false alarms in 33 camera-free photos (at 50%)
+                 previous model YOLO11n (2.6 M params): 12 of 18 with 2 false alarms
+                 phones: 12 of 19 found, 4 false alarms in 87 (look-alikes)
+  Used for       "Camera found" by shape (lights on: the CCTV case), phones as hidden cameras,
+                 telling smoke detectors apart from dome cameras
+  How it is used A box counts only after 3 of the last 6 looks that could see it, at 70%+, or at
+                 50%+ when the zoomed look agrees twice. Looks take turns: whole picture, middle half
+                 (2x), whole picture, middle quarter (4x) of the full-resolution frame, so small and
+                 far cameras get 2-4x the pixels. Videos under 960 px use the 2x look only.
+
+MODEL 2 - ROOM OBJECTS (pre-trained)               models/objects.onnx + .json
+  Architecture   YOLOv8n trained on Open Images V7 (Ultralytics), 13.5 MB ONNX, input 416 x 416
+  Classes kept   49: person, clock, TV, picture frame, mirror, lamp, bulb, socket, switchboard, fan,
+                 soft toy, plant, smoke detector, phone, laptop, tablet...
+  Used for       hiding-spot hints by voice ("Clock ahead. Check it for a hidden camera."), the "In
+                 view" list, ticking places off the room checklist, a phone / laptop at a glint
+                 ("Phone camera found", "Laptop camera found" only in the webcam bezel)
+
+TRAINING-ONLY MODELS (not in the app)
+  Google OWLv2 and Grounding DINO: open-vocabulary detectors used only to label training photos.
+
+NOT USED
+  No LLM, no chatbot, no cloud AI. The agent is rule-based: instant, deterministic, offline.
+
+RUNTIME
+  ONNX Runtime Web 1.30 in a Web Worker. WebGPU on phones that support it (e.g. the iQOO/vivo
+  test phone), WebAssembly SIMD on the CPU otherwise (works on older phones, just slower). The
+  scan adapts the check rate to the speed it measures.
+
+
+-------------------------------------------------------------------------------------
+5. CLASSIC (NON-AI) DETECTION TECHNIQUES
+-------------------------------------------------------------------------------------
+  Glint detection      bright, sharp, isolated points in each frame; exposure turned down in lit rooms
+  Flash test           torch off/on: a lens reflection goes dark, a lamp / LED / screen stays lit
+  Parallax test        the point's direction in the room (orientation sensor + position in the frame)
+                       must change 6+ degrees with the flash (8 without) as you move sideways
+  Anchor test          block matching of the surface around the point: a lens moves with its object,
+                       a reflection slides across a shiny surface
+  Two-sign rule        "Camera found" needs the light tests AND a second independent sign (camera
+                       shape, magnetic +8 uT, or a phone / tablet / laptop webcam at the spot);
+                       otherwise it is a "possible lens" with its photo
+  Magnetic detector    field strength vs. calibrated baseline; beeps faster near powered electronics
+                       (hidden cameras, audio recorders, trackers), up close; "Device detected" past
+                       +25 uT; it can't tell which device it is, so it never calls a camera alone
+  Night vision         purple/infrared tint of night-camera LEDs in the dark, flash off
+  Mirror test          fingernail, flashlight and knock tests for two-way mirrors (guided)
+  Radio fingerprints   hotspot names, MAC vendor prefixes, BLE tracker signatures, camera ports
+
+
+-------------------------------------------------------------------------------------
+6. PHONE HARDWARE USED, AND FOR WHAT
+-------------------------------------------------------------------------------------
+  Rear camera           video frames for the glint detector and both AI models
+  Flash (torch)         flash tests; siren strobe
+  Magnetometer          magnetic detector; +8 uT sign at a glint
+  Gyroscope / rotation  heading for the parallax test, coverage radar, "Turn right 60 degrees"
+  Accelerometer         shake-for-SOS
+  Light sensor          lit-room vs dark-room strategy
+  Wi-Fi radio           hotspot scan, network check, devices on the Wi-Fi
+  Bluetooth LE          AirTag / Tile / SmartTag trackers, Bluetooth cameras
+  GPS / location        SOS map link
+  Speaker               voice guidance, beeper, siren, fake-call ringtone
+  Vibration motor       haptic alerts, discreet-mode guidance
+  Power button          SOS by pressing it 3 times (screen on/off events)
+  Camera / mic service  alert when an app uses them while the screen is off
+
+
+-------------------------------------------------------------------------------------
+7. ANDROID PERMISSIONS, AND WHY
+-------------------------------------------------------------------------------------
+  CAMERA                                  the scan itself
+  ACCESS_FINE / COARSE_LOCATION           Android requires it for Wi-Fi scan results; SOS location
+  NEARBY_WIFI_DEVICES                     Wi-Fi scan on Android 13+
+  ACCESS_WIFI_STATE, CHANGE_WIFI_STATE    start Wi-Fi scans, read the connection
+  CHANGE_WIFI_MULTICAST_STATE             ONVIF / SSDP discovery on the local network
+  ACCESS_NETWORK_STATE                    network check (VPN, Private DNS, proxy)
+  INTERNET                                talk to devices on the local Wi-Fi (network scan); nothing is uploaded
+  BLUETOOTH_SCAN / CONNECT (+ legacy)     Bluetooth tracker scan
+  QUERY_ALL_PACKAGES                      phone check needs the full list of installed apps
+  REQUEST_DELETE_PACKAGES                 open Android's uninstall dialog for a spy app
+  POST_NOTIFICATIONS                      protection service, SOS countdown, privacy alerts
+  FOREGROUND_SERVICE (+ LOCATION, SPECIAL_USE)  protection outside the app
+  SEND_SMS                                SOS text to the trusted contact
+  REQUEST_IGNORE_BATTERY_OPTIMIZATIONS    keep protection running on phones that stop background apps
+  VIBRATE                                 haptics
+  BIND_QUICK_SETTINGS_TILE                the SOS tile
+
+
+-------------------------------------------------------------------------------------
+8. THIRD-PARTY LIBRARIES, DATA AND LICENCES
+-------------------------------------------------------------------------------------
+  ONNX Runtime Web 1.30                    MIT          on-device inference (vendor/ort)
+  Capacitor 8                              MIT          Android WebView shell + plugin bridge
+  Ultralytics YOLO11 / YOLOv8              AGPL-3.0     model architecture and training
+  Open Images V7 (via Ultralytics)                      room-object model
+  Wikimedia Commons photos                 free licences   training photos
+  Google OWLv2, Grounding DINO             Apache-2.0   automatic labelling (training only)
+  Stalkerware IOC by Echap                 CC BY 4.0    known stalkerware list
+  Plus Jakarta Sans, JetBrains Mono,       SIL OFL 1.1  bundled fonts (work offline)
+  Noto Sans Devanagari / Telugu
+
+
+-------------------------------------------------------------------------------------
+9. BUILD, TESTS AND DELIVERY
+-------------------------------------------------------------------------------------
+  Build        node tools/build-web.mjs        -> android-app/www (packed into the APK)
+               node tools/build-web.mjs site   -> site/ (the website)
+               npx cap sync android; gradlew assembleDebug (JDK 21) -> dist/TwinGaze.apk
+  Unit tests   tests/agent.test.js (9), detector.test.js (12), guard.test.js (20),
+               privacy.test.js (16), radio.test.js (18), voice.test.js (8)  = 83 tests
+  End-to-end   headless-Chrome runs of the real app: simulated live scans (quiet room and busy
+               hall), recorded videos, the reference hall video, and a start-up test that fakes the
+               Android environment
+  Results      Reference hall video (2 CCTV domes): 2 of 2 found in ~2 s, 5 of 5 runs, no false
+               cameras. Busy hall: instruction changes 56 -> 20 per minute.
+  Delivery     dist/TwinGaze.apk (install over USB, or send the file to the phone)
+               site/ (website, Netlify-ready; not deployed yet)
+               vivo Office Kit: "Send report to laptop", album sync, shared clipboard, mirroring
+  Reference    media/hall-reference.mp4, shipped in the app: Detectors -> Video ->
+               "Hackathon hall - reference". Analysed live like any video; the report's
+               "Reference check" compares the count with the 2 known cameras.
+
+
+-------------------------------------------------------------------------------------
+10. HONEST LIMITS
+-------------------------------------------------------------------------------------
+  - Can miss a camera that is covered, pointed away, or behind tinted plastic.
+    "No camera found" lowers the risk; it doesn't rule a camera out.
+  - A pinhole camera inside a clock looks like a clock to the shape model; the glint and
+    magnetic tests are what find it.
+  - A CCTV dome far across a big hall is at the edge of the shape model: walk closer.
+  - A tiny shiny bead or screw head can pass the light tests, so it stays a "possible lens"
+    until a second sign confirms it.
+  - Smoke detectors are sometimes confused with dome cameras.
+  - Radio scans need the Android app; many cameras record to a memory card with no Wi-Fi.
+  - The orientation sensor drifts a few degrees a minute; once the target is in the picture the
+    agent steers by the picture instead.
+
+Research TwinGaze builds on:
+  - LAPD: Hidden Spy Camera Detection using Smartphone Time-of-Flight Sensors, NUS,
+    ACM SenSys 2021 (people searching by eye found 46% of hidden cameras).
+  - Lumos: Identifying and Localizing Diverse Hidden IoT Devices in an Unfamiliar Environment,
+    CMU, USENIX Security 2022.

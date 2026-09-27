@@ -1,0 +1,31 @@
+# editor / assistant settings on the development laptop
+.claude/
+CLAUDE.md
+.vscode/
+.cursor/
+.idea/
+*.iml
+
+# dependencies
+node_modules/
+
+# build output (made again by `node tools/build-web.mjs`, `npx cap sync android` and Gradle)
+site/
+android-app/www/
+android-app/android/app/src/main/assets/public/
+android-app/android/app/src/main/assets/capacitor.config.json
+android-app/android/app/src/main/assets/capacitor.plugins.json
+android-app/android/capacitor-cordova-android-plugins/
+android-app/android/app/build/
+android-app/android/build/
+android-app/android/.gradle/
+android-app/android/local.properties
+
+# the built app is attached to a GitHub release instead of being stored in the code
+dist/
+*.apk
+
+# system files
+.DS_Store
+Thumbs.db
+desktop.ini

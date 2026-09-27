@@ -1,0 +1,53 @@
+{
+ "file": "camera-detector.onnx",
+ "imgsz": 416,
+ "threshold": 0.2,
+ "confirm": 0.5,
+ "agnostic": true,
+ "source": "YOLO11s (9.4 M parameters) fine-tuned for TwinGaze on Wikimedia Commons photos labelled by OWLv2 + Grounding DINO, plus real false alarms from a hackathon hall as hard negatives",
+ "test": {
+  "camera": {
+   "found": 12,
+   "of": 18,
+   "false": 0,
+   "negatives": 33,
+   "at": 0.5
+  },
+  "phone": {
+   "found": 12,
+   "of": 19,
+   "false": 4,
+   "negatives": 87,
+   "at": 0.5
+  }
+ },
+ "previous": {
+  "model": "YOLO11n",
+  "camera": {
+   "found": 12,
+   "of": 18,
+   "false": 2,
+   "at": 0.5
+  },
+  "camera_at_0.7": {
+   "found": 7,
+   "false": 1
+  }
+ },
+ "classes": {
+  "0": {
+   "label": "Camera",
+   "threshold": 0.2
+  },
+  "1": {
+   "label": "Smoke detector",
+   "spot": "smoke",
+   "threshold": 0.35
+  },
+  "2": {
+   "label": "Phone",
+   "spot": "phone",
+   "threshold": 0.5
+  }
+ }
+}

@@ -1,0 +1,229 @@
+{
+ "file": "objects.onnx",
+ "imgsz": 416,
+ "threshold": 0.3,
+ "source": "YOLOv8n trained on Open Images V7 (Ultralytics, AGPL-3.0)",
+ "classes": {
+  "381": {
+   "label": "Person",
+   "threshold": 0.35
+  },
+  "322": {
+   "label": "Person",
+   "threshold": 0.35
+  },
+  "594": {
+   "label": "Person",
+   "threshold": 0.35
+  },
+  "63": {
+   "label": "Person",
+   "threshold": 0.35
+  },
+  "216": {
+   "label": "Person",
+   "threshold": 0.35
+  },
+  "527": {
+   "label": "TV",
+   "threshold": 0.3,
+   "spot": "tv"
+  },
+  "128": {
+   "label": "Monitor",
+   "threshold": 0.4
+  },
+  "304": {
+   "label": "Laptop",
+   "threshold": 0.3
+  },
+  "113": {
+   "label": "Clock",
+   "threshold": 0.25,
+   "spot": "clock"
+  },
+  "573": {
+   "label": "Clock",
+   "threshold": 0.25,
+   "spot": "clock"
+  },
+  "4": {
+   "label": "Clock",
+   "threshold": 0.25,
+   "spot": "clock"
+  },
+  "157": {
+   "label": "Clock",
+   "threshold": 0.25,
+   "spot": "clock"
+  },
+  "301": {
+   "label": "Lamp",
+   "threshold": 0.3,
+   "spot": "lamp"
+  },
+  "308": {
+   "label": "Light bulb",
+   "threshold": 0.25,
+   "spot": "bulb"
+  },
+  "335": {
+   "label": "Mirror",
+   "threshold": 0.3,
+   "spot": "mirror"
+  },
+  "386": {
+   "label": "Picture frame",
+   "threshold": 0.3,
+   "spot": "frame"
+  },
+  "403": {
+   "label": "Picture frame",
+   "threshold": 0.35,
+   "spot": "frame"
+  },
+  "100": {
+   "label": "Fan",
+   "threshold": 0.3,
+   "spot": "fan"
+  },
+  "329": {
+   "label": "Fan",
+   "threshold": 0.3,
+   "spot": "fan"
+  },
+  "405": {
+   "label": "Socket",
+   "threshold": 0.25,
+   "spot": "socket"
+  },
+  "309": {
+   "label": "Switchboard",
+   "threshold": 0.25,
+   "spot": "switch"
+  },
+  "258": {
+   "label": "Plant",
+   "threshold": 0.3,
+   "spot": "decor"
+  },
+  "196": {
+   "label": "Plant",
+   "threshold": 0.3,
+   "spot": "decor"
+  },
+  "565": {
+   "label": "Vase",
+   "threshold": 0.3,
+   "spot": "decor"
+  },
+  "525": {
+   "label": "Soft toy",
+   "threshold": 0.3,
+   "spot": "decor"
+  },
+  "162": {
+   "label": "Soft toy",
+   "threshold": 0.3,
+   "spot": "decor"
+  },
+  "545": {
+   "label": "Towel",
+   "threshold": 0.3,
+   "spot": "hook"
+  },
+  "420": {
+   "label": "Remote",
+   "threshold": 0.3
+  },
+  "62": {
+   "label": "Box",
+   "threshold": 0.35,
+   "spot": "box"
+  },
+  "339": {
+   "label": "Phone",
+   "threshold": 0.5
+  },
+  "516": {
+   "label": "Tablet",
+   "threshold": 0.35
+  },
+  "82": {
+   "label": "Camera",
+   "threshold": 0.3,
+   "spot": "camera"
+  },
+  "34": {
+   "label": "Bed",
+   "threshold": 0.35
+  },
+  "104": {
+   "label": "Chair",
+   "threshold": 0.35
+  },
+  "136": {
+   "label": "Sofa",
+   "threshold": 0.35
+  },
+  "514": {
+   "label": "Table",
+   "threshold": 0.35
+  },
+  "153": {
+   "label": "Desk",
+   "threshold": 0.35
+  },
+  "453": {
+   "label": "Shelf",
+   "threshold": 0.35,
+   "spot": "shelf"
+  },
+  "574": {
+   "label": "Wardrobe",
+   "threshold": 0.35
+  },
+  "148": {
+   "label": "Curtain",
+   "threshold": 0.35
+  },
+  "587": {
+   "label": "Window",
+   "threshold": 0.4
+  },
+  "164": {
+   "label": "Door",
+   "threshold": 0.4
+  },
+  "538": {
+   "label": "Toilet",
+   "threshold": 0.35
+  },
+  "460": {
+   "label": "Sink",
+   "threshold": 0.35
+  },
+  "458": {
+   "label": "Shower",
+   "threshold": 0.3,
+   "spot": "shower"
+  },
+  "31": {
+   "label": "Bathtub",
+   "threshold": 0.35
+  },
+  "57": {
+   "label": "Bottle",
+   "threshold": 0.35,
+   "spot": "shelf"
+  },
+  "54": {
+   "label": "Book",
+   "threshold": 0.4
+  },
+  "388": {
+   "label": "Pillow",
+   "threshold": 0.4
+  }
+ }
+}

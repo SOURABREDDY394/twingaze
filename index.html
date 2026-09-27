@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F6F4">
+<meta name="color-scheme" content="light">
+<meta name="description" content="TwinGaze finds hidden cameras with your phone and checks the phone itself for spyware. It spots camera shapes, tests shiny spots with the flash, senses electronics and radio, and walks you to each hiding spot. Works offline.">
+<title>TwinGaze</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body data-tab="home" class="booting">
+
+<!-- icons (24px, stroke) + the TwinGaze mark -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+        <symbol id="logo" viewBox="0 0 100 100"><path d="M12 30V18a6 6 0 0 1 6-6h12M70 12h12a6 6 0 0 1 6 6v12M88 70v12a6 6 0 0 1-6 6H70M30 88H18a6 6 0 0 1-6-6V70" fill="none" stroke="#141414" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 50c7-11 16-17 26-17s19 6 26 17c-7 11-16 17-26 17s-19-6-26-17z" fill="#EE3A4F" stroke="none"/><circle cx="50" cy="50" r="10" fill="#FDCF58" stroke="none"/><circle cx="50" cy="50" r="4.2" fill="#141414" stroke="none"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-magnet" viewBox="0 0 24 24"><path d="M6 4v9a6 6 0 0 0 12 0V4h-4v9a2 2 0 0 1-4 0V4zM6 8h4M14 8h4"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.6a11 11 0 0 1 14 0M1.5 9a16 16 0 0 1 21 0M8.5 16.1a6 6 0 0 1 7 0"/><circle cx="12" cy="20" r="1"/></symbol>
+    <symbol id="i-bt" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></symbol>
+    <symbol id="i-net" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-2h14v2"/></symbol>
+    <symbol id="i-mirror" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M9.5 8l3-2M9.5 12l5-3.5"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-phonecheck" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.6"/><path d="M11 18.5h2M9.3 10.8l1.9 1.9 3.6-3.8"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 3v5h5M3.1 13A9 9 0 1 0 6 5.3L3 8M12 7v5l4 2"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-flash" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M1 4v6h6M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-agent" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><path d="M12 12l7-7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-bug" viewBox="0 0 24 24"><path d="M9 7.1V6a3 3 0 0 1 6 0v1.1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6zM12 20v-9M6 13H2.5M21.5 13H18M6.3 9.5 3.5 8M17.7 9.5 20.5 8M6.4 17.3 3.5 19.5M17.6 17.3l2.9 2.2"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2.5"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1.5V5M15 1.5V5M9 19v3.5M15 19v3.5M1.5 9H5M1.5 15H5M19 9h3.5M19 15h3.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  </defs>
+</svg>
+
+<!-- LAUNCH SCREEN: same background and mark as the Android launch screen, then the animation -->
+<div class="splash" id="splash" aria-hidden="true">
+  <span class="sp-tri sp-red"></span><span class="sp-tri sp-yellow"></span>
+  <div class="sp-logo">
+    <svg class="sp-mark" viewBox="0 0 100 100">
+      <path class="sp-br" d="M12 30V18a6 6 0 0 1 6-6h12M70 12h12a6 6 0 0 1 6 6v12M88 70v12a6 6 0 0 1-6 6H70M30 88H18a6 6 0 0 1-6-6V70" fill="none" stroke="#141414" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g class="sp-eye"><path d="M24 50c7-11 16-17 26-17s19 6 26 17c-7 11-16 17-26 17s-19-6-26-17z" fill="#EE3A4F"/><circle cx="50" cy="50" r="10" fill="#FDCF58"/><circle cx="50" cy="50" r="4.2" fill="#141414"/></g>
+    </svg>
+  </div>
+  <div class="sp-text">
+    <h1>TwinGaze</h1>
+    <p>Find hidden cameras · Check your phone</p>
+  </div>
+  <div class="sp-load"><div class="sp-bar"><i id="splashBar"></i></div><p id="splashMsg">Starting</p></div>
+  <p class="sp-foot">Team Ragnarok · iQOO Hackathon 2026</p>
+</div>
+
+<main class="stage">
+  <section class="app" id="app" aria-label="TwinGaze">
+
+    <!-- HOME -->
+    <div class="scr" id="home">
+      <header class="topbar">
+        <div class="brand"><svg class="logo"><use href="#logo"/></svg><div><b>TwinGaze</b><small id="aiState"><i></i>Getting ready…</small></div></div>
+        <button class="pill danger" type="button" id="sosBtn" aria-label="SOS"><svg><use href="#i-phone"/></svg>SOS</button>
+      </header>
+
+      <section class="hero rise">
+        <span class="hero-red"></span><span class="hero-yellow"></span>
+        <p class="hero-k">Privacy check</p>
+        <h1>Find hidden cameras</h1>
+        <p class="hero-p">Scan the room with the camera and sensors, then check this phone for spyware. Nothing leaves the phone.</p>
+        <div class="hero-btns">
+          <button class="pill-btn dark" id="start" type="button">Scan room <svg><use href="#i-arrow"/></svg></button>
+          <button class="pill-btn line" id="heroPhone" type="button">Check phone</button>
+        </div>
+        <button class="hero-link" id="heroSample" type="button"><svg><use href="#i-video"/></svg>Watch it find cameras · reference video</button>
+      </section>
+
+      <section class="sec rise">
+        <div class="sec-h"><h2>Where are you?</h2></div>
+        <div class="chips" id="rooms"></div>
+      </section>
+
+      <section class="duo rise">
+        <button class="dcard" type="button" data-tool="full">
+          <span class="d-ic ic-red"><svg><use href="#i-eye"/></svg></span>
+          <span class="d-tx"><b>Room</b><span class="d-st" id="lastRoom"><i></i>Not scanned yet</span></span>
+        </button>
+        <button class="dcard" type="button" id="scanPhone">
+          <span class="d-ic ic-yellow"><svg><use href="#i-phonecheck"/></svg></span>
+          <span class="d-tx"><b>This phone</b><span class="d-st" id="lastPhone"><i></i>Not checked yet</span></span>
+        </button>
+      </section>
+
+      <section class="sec rise">
+        <div class="sec-h"><h2>Detectors</h2><button class="link" type="button" data-go="tools">See all</button></div>
+        <div class="tiles" id="homeTiles"></div>
+      </section>
+
+      <button class="banner rise" type="button" data-go="how">
+        <span class="bn-ic"><svg><use href="#i-cpu"/></svg></span>
+        <span><b>How TwinGaze detects</b><small>What each check looks for, and its limits</small></span>
+        <svg class="chev"><use href="#i-next"/></svg>
+      </button>
+
+      <section class="sec rise" id="recentSec" hidden>
+        <div class="sec-h"><h2>Recent</h2><button class="link" type="button" data-go="history">History</button></div>
+        <div class="list" id="recentList"></div>
+      </section>
+
+      <div class="note" id="homeNote" hidden></div>
+      <input type="file" id="file" accept="video/*" hidden>
+      <button type="button" id="pickVideo" hidden>Analyse a recorded room video</button>
+      <p class="foot"><svg><use href="#i-shield"/></svg>Works offline · nothing is uploaded</p>
+    </div>
+
+    <!-- TOOLS -->
+    <div class="scr" id="tools" hidden>
+      <div class="page-h"><h1>Detectors</h1><p>Each one on its own. The full room scan runs them together.</p></div>
+      <div class="tiles tiles-lg" id="allTiles"></div>
+      <button class="banner" type="button" data-go="how">
+        <span class="bn-ic"><svg><use href="#i-cpu"/></svg></span>
+        <span><b>How TwinGaze detects</b><small>What each detector uses, and its limits</small></span>
+        <svg class="chev"><use href="#i-next"/></svg>
+      </button>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="scr" id="history" hidden>
+      <div class="page-h"><h1>History</h1><p>Every scan and every photo stays on this phone.</p></div>
+      <button class="row-link" id="openLocker" type="button"><span class="rl-ic"><svg><use href="#i-photo"/></svg></span><span>Evidence locker</span><b id="lockerN">0</b><svg class="chev"><use href="#i-next"/></svg></button>
+      <div class="list" id="historyList"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="scr" id="settings" hidden>
+      <div class="page-h"><h1>Settings</h1></div>
+      <p class="group-h">Guidance</p>
+      <div class="group">
+        <div class="row"><span class="r-ic g-blue"><svg><use href="#i-sound"/></svg></span><div><b>Voice language</b><small>Directions and alerts</small></div>
+          <div class="seg" role="group" aria-label="Voice language">
+            <button type="button" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+            <button type="button" data-lang="te" aria-pressed="false" lang="te">తె</button>
+          </div></div>
+        <div class="row col"><div class="row-t"><span class="r-ic g-violet"><svg><use href="#i-sound"/></svg></span><div><b>Voice guidance</b><small id="vmDesc">Guide: where to move, and what was found</small></div></div>
+          <div class="seg seg-wide" role="group" aria-label="Voice guidance">
+            <button type="button" data-vm="off" aria-pressed="false">Off</button>
+            <button type="button" data-vm="alerts" aria-pressed="false">Alerts</button>
+            <button type="button" data-vm="guide" aria-pressed="true">Guide</button>
+          </div></div>
+        <div class="row" id="voiceRow" hidden><span class="r-ic g-blue"><svg><use href="#i-sound"/></svg></span><div><b>Voice</b><small id="voiceName">The phone's clearest voice</small></div><button class="chipbtn" type="button" id="voiceNext">Change</button></div>
+        <div class="row"><span class="r-ic g-cyan"><svg><use href="#i-activity"/></svg></span><div><b>Proximity beeper</b><small>Beeps faster as you get closer</small></div><button class="switch" id="cSound" type="button" aria-pressed="true">Beeper on</button></div>
+        <div class="row"><span class="r-ic g-slate"><svg><use href="#i-moon"/></svg></span><div><b>Discreet mode</b><small>Dim and silent, guidance by vibration</small></div><button class="switch" id="cDiscreet" type="button" aria-pressed="false">Off</button></div>
+      </div>
+      <p class="group-h">Detection</p>
+      <div class="group">
+        <div class="row col"><div class="row-t"><span class="r-ic g-amber"><svg><use href="#i-radar"/></svg></span><div><b>Sensitivity</b><small id="sensDesc">Balanced: the tested default</small></div></div>
+          <div class="seg seg-wide" role="group" aria-label="Sensitivity" id="sensSeg">
+            <button type="button" data-sens="sensitive" aria-pressed="false">Sensitive</button>
+            <button type="button" data-sens="balanced" aria-pressed="true">Balanced</button>
+            <button type="button" data-sens="strict" aria-pressed="false">Strict</button>
+          </div></div>
+        <button class="row" type="button" id="openHow"><span class="r-ic g-blue"><svg><use href="#i-cpu"/></svg></span><div><b>How TwinGaze detects</b><small>What each check does, and its limits</small></div><svg class="chev"><use href="#i-next"/></svg></button>
+      </div>
+      <p class="group-h">Safety</p>
+      <div class="group">
+        <div class="row col"><div class="row-t"><span class="r-ic g-red"><svg><use href="#i-phone"/></svg></span><div><b>Trusted contact</b><small>SOS texts your location to this number</small></div></div>
+          <div class="field2"><input id="tcName" placeholder="Name" autocomplete="off"><input id="tcPhone" placeholder="Phone number" inputmode="tel" autocomplete="off"></div></div>
+        <div class="row col"><div class="row-t"><span class="r-ic g-red"><svg><use href="#i-shield"/></svg></span><div><b>Protection outside the app</b><small id="protSub">SOS when you press the power button 3 times or shake the phone, even with TwinGaze closed</small></div><button class="switch" id="cProtect" type="button" aria-pressed="false">Off</button></div>
+          <div class="prot-acts" id="protActs" hidden><button class="chipbtn danger" type="button" id="protNotif" hidden>Allow notifications</button><button class="chipbtn danger" type="button" id="protSms" hidden>Allow SMS</button><button class="chipbtn" type="button" id="protTest">Test SOS</button><button class="chipbtn" type="button" id="protTile">Add SOS tile</button><button class="chipbtn" type="button" id="protBattery" hidden>Keep it running</button></div></div>
+      </div>
+      <p class="group-h">This phone</p>
+      <div class="group">
+        <dl class="sens-dl" id="sensMirror"></dl>
+      </div>
+      <p class="foot">TwinGaze 3.2.4 · Team Ragnarok · works offline</p>
+    </div>
+
+    <!-- HOW IT DETECTS -->
+    <div class="scr" id="how" hidden>
+      <div class="page-top"><button class="icon-btn" type="button" data-go="back" aria-label="Back"><svg><use href="#i-back"/></svg></button><span class="where">How it detects</span><span></span></div>
+      <p class="how-lede">Each check is good at a different kind of camera. All of it runs on this phone: no internet, nothing uploaded.</p>
+      <div class="how-list" id="howList"></div>
+    </div>
+
+    <!-- PHONE CHECK -->
+    <div class="scr fs page" id="guard" hidden>
+      <div class="page-top"><button class="icon-btn" id="gBack" type="button" aria-label="Back"><svg><use href="#i-back"/></svg></button><span class="where">Phone check</span><span></span></div>
+      <div class="g-hero">
+        <div class="g-orb" id="gOrb">
+          <svg class="g-ring" viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="52"/><circle class="bar" id="gRing" cx="60" cy="60" r="52" pathLength="100"/></svg>
+          <span class="g-scanline"></span>
+          <div class="g-core"><svg id="gIcon"><use href="#i-phonecheck"/></svg><b id="gPct">0%</b></div>
+        </div>
+        <h2 id="gTitle">Checking this phone</h2>
+        <p id="gSub">Looking for spyware, stalkerware and risky settings.</p>
+      </div>
+      <div class="g-sum" id="gSum" hidden></div>
+      <div id="gBody" hidden>
+        <div class="sec-h"><h2>Needs attention</h2><span class="count" id="gIssuesN"></span></div>
+        <div class="list" id="gIssues"></div>
+        <div class="sec-h"><h2>Camera &amp; microphone</h2><span class="count">right now</span></div>
+        <div class="list" id="gLive"></div>
+        <div class="sec-h"><h2>Trackers in your apps</h2><span class="count" id="gTrkN"></span></div>
+        <div class="list" id="gTrackers"></div>
+        <div class="sec-h"><h2>Phone settings</h2></div>
+        <div class="list" id="gDevice"></div>
+        <details class="g-all"><summary>All apps checked <span id="gAppsN"></span></summary><div class="list" id="gApps"></div></details>
+        <p class="hint" id="gHint"></p>
+      </div>
+      <div class="btns" id="gBtns" hidden><button class="btn" id="gAgain" type="button">Scan again</button><button class="btn pri" id="gDone" type="button">Done</button></div>
+    </div>
+
+    <!-- NETWORK CHECK -->
+    <div class="scr fs page" id="net" hidden>
+      <div class="page-top"><button class="icon-btn" id="nBack" type="button" aria-label="Back"><svg><use href="#i-back"/></svg></button><span class="where">Network check</span><span></span></div>
+      <div class="g-hero">
+        <div class="g-orb" id="nOrb">
+          <svg class="g-ring" viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="52"/><circle class="bar" id="nRing" cx="60" cy="60" r="52" pathLength="100"/></svg>
+          <span class="g-scanline"></span>
+          <div class="g-core"><svg id="nIcon"><use href="#i-wifi"/></svg><b id="nPct">0%</b></div>
+        </div>
+        <h2 id="nTitle">Checking this network</h2>
+        <p id="nSub">Is this Wi-Fi private? Who can see what you do on it?</p>
+      </div>
+      <div class="g-sum" id="nSum" hidden></div>
+      <div id="nBody" hidden>
+        <div class="sec-h"><h2>Privacy on this network</h2></div>
+        <div class="list" id="nChecks"></div>
+        <div class="sec-h"><h2>Devices on this Wi-Fi</h2><span class="count" id="nDevN"></span></div>
+        <div class="list" id="nDevices"></div>
+        <p class="hint" id="nHint"></p>
+      </div>
+      <div class="btns" id="nBtns" hidden><button class="btn" id="nAgain" type="button">Scan again</button><button class="btn pri" id="nDone" type="button">Done</button></div>
+    </div>
+
+    <!-- SCAN -->
+    <div class="scr fs" id="scan" hidden>
+      <div class="vf" id="vf">
+        <video id="video" playsinline muted autoplay></video>
+        <canvas id="ov" aria-hidden="true"></canvas>
+        <div class="scan-top">
+          <button class="icon-btn glass" id="stop" type="button" aria-label="Stop"><svg><use href="#i-x"/></svg></button>
+          <span class="where" id="where"></span>
+          <span class="prog"><span id="clock">0:00</span><button class="snd" id="tSound" type="button" aria-pressed="true">Sound on</button></span>
+        </div>
+        <div class="hud" aria-hidden="true">
+          <span class="tl" id="hTorch">FLASH —</span>
+          <span class="tr" id="hMag">MAG —</span>
+          <span class="tc" id="hTest" hidden>FLASH TEST</span>
+          <span class="bl" id="hAng">∠ —</span>
+          <span class="br" id="hFps" hidden>— FPS</span>
+        </div>
+        <canvas class="radar-mini" id="radar" aria-hidden="true" hidden></canvas>
+      </div>
+
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="instr" aria-live="polite">
+          <div class="eyebrow" id="iTag">Starting</div>
+          <h2 id="iTitle">Opening the camera</h2>
+          <p id="iSub"></p>
+        </div>
+        <div class="meter" aria-hidden="true">
+          <span>Signal</span><i><u id="mBar"></u></i><em id="mVal">0</em>
+        </div>
+
+        <div class="tools">
+          <button class="tool" id="tTorch" type="button"><span><svg><use href="#i-flash"/></svg></span>Flash</button>
+          <button class="tool" id="tRec" type="button"><span><svg><use href="#i-rec"/></svg></span><em>Record</em></button>
+          <button class="tool" id="tCapture" type="button"><span><svg><use href="#i-photo"/></svg></span>Photo</button>
+          <button class="tool" id="tMag" type="button"><span><svg><use href="#i-reset"/></svg></span>Magnet</button>
+          <button class="tool pri" id="tFinish" type="button"><span><svg><use href="#i-check"/></svg></span>Finish</button>
+        </div>
+
+        <div class="vidbar" id="vidBar" hidden>
+          <button class="tool sm" id="vPlay" type="button">Pause</button>
+          <input type="range" id="vSeek" min="0" max="1000" value="0" step="1" aria-label="Position in the video">
+          <span id="vTime">0:00 / 0:00</span>
+          <button class="tool sm" id="vSpeed" type="button">1×</button>
+        </div>
+
+        <div class="agent" id="agentCard" hidden>
+          <div class="agent-h"><span class="ag-ic"><svg><use href="#i-scan"/></svg></span><b>Room check</b><span class="ag-goal" id="agGoal">Getting ready</span><button class="ag-skip" id="agSkip" type="button" hidden>Skip</button></div>
+          <ol class="ag-steps" id="agSteps"></ol>
+          <div class="ag-cover" id="agCoverRow" hidden><span>Mapped</span><i><u id="agCov"></u></i><span id="agCovN">0°</span></div>
+          <ol class="ag-trace" id="agTrace"></ol>
+        </div>
+
+        <div class="scene" id="scene" hidden>
+          <div class="scene-h"><span>In view</span><button type="button" id="tWhat">What's here?</button></div>
+          <div class="scene-list" id="sceneList"></div>
+        </div>
+
+        <div class="evid" id="evid" hidden>
+          <div class="evh"><span id="eSpot">BRIGHT SPOT</span><span id="eScore">—</span></div>
+          <div class="sig" data-k="glint"><span>Shine</span><i><u></u></i><em>—</em></div>
+          <div class="sig" data-k="angle"><span>Angle</span><i><u></u></i><em>—</em></div>
+          <div class="sig" data-k="flash"><span>Flash</span><i><u></u></i><em>—</em></div>
+          <div class="sig" data-k="mag"><span>Magnetic</span><i><u></u></i><em>—</em></div>
+          <div class="sig-note" id="eNote"></div>
+        </div>
+
+        <div class="events" id="events" hidden>
+          <div class="label">Detections <span id="eventsN"></span></div>
+          <ol id="eventList"></ol>
+        </div>
+
+        <div class="label" id="railLabel">Places to check <span id="placesN"></span></div>
+        <ol class="rail" id="rail"></ol>
+        <p class="hint" id="railHint">Tap a place once you've checked it. Tap a box on the video to ignore something harmless.</p>
+      </div>
+
+      <div class="alert" id="alert" hidden role="alertdialog" aria-labelledby="alertH">
+        <div class="al-top"><span class="al-badge"><svg><use href="#i-alert"/></svg></span><div class="eyebrow" id="alertMeta"></div></div>
+        <h2 id="alertH">Camera<br>found</h2>
+        <img id="alertImg" alt="Saved photo of the spot">
+        <div class="te" lang="te">జాగ్రత్త. ఇక్కడ దాచిన కెమెరా ఉండవచ్చు.</div>
+        <div class="hi" lang="hi">सावधान। यहाँ छिपा कैमरा हो सकता है।</div>
+        <ul id="alertSig"></ul>
+        <div class="warn">Don't touch or cover it. Look closely for a tiny dark hole or lens. The photo is saved on this phone.</div>
+        <div class="alert-btns">
+          <button class="act" id="alertKeep" type="button">Keep scanning</button>
+          <button class="act ghost" id="alertReport" type="button">See report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAGNETIC DETECTOR -->
+    <div class="scr fs" id="magnet" hidden>
+      <div class="gauge" id="gauge">
+        <canvas id="mGraph" aria-hidden="true"></canvas>
+        <div class="scan-top">
+          <button class="icon-btn glass" id="mStop" type="button" aria-label="Stop"><svg><use href="#i-x"/></svg></button>
+          <span class="where">Magnetic detector</span>
+          <span class="prog"><span id="mClock">0:00</span><button class="snd" id="mSound" type="button" aria-pressed="true">Sound on</button></span>
+        </div>
+        <span class="g-src" id="mSrc">SENSOR —</span>
+        <div class="g-read"><b id="mDelta">—</b><span>µT change from the room</span></div>
+        <div class="g-sub"><span id="mField">FIELD —</span><span id="mBase">BASELINE —</span><span id="mPeak">PEAK —</span></div>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="instr" aria-live="polite">
+          <div class="eyebrow" id="mTag">Magnetic detector</div>
+          <h2 id="mTitle">Starting</h2>
+          <p id="mSub"></p>
+        </div>
+        <div class="meter" aria-hidden="true">
+          <span>Signal</span><i><u id="mgBar"></u></i><em id="mgVal">0</em>
+        </div>
+        <div class="note" id="mUnavailable" hidden></div>
+        <div class="tools tools2">
+          <button class="tool" id="mCal" type="button"><span><svg><use href="#i-reset"/></svg></span>Recalibrate</button>
+          <button class="tool pri" id="mDone" type="button"><span><svg><use href="#i-check"/></svg></span>Done</button>
+        </div>
+        <div class="card how-box">
+          <h3>How to sweep</h3>
+          <ol class="todo">
+            <li>Hold the phone away from electronics for two seconds so it learns the room.</li>
+            <li>Move it slowly, a hand's width from each object: smoke detector, clock, charger, bulb holder, hooks.</li>
+            <li>The beeps speed up as the field bends. Past +25 µT it sounds the alarm: a powered device is right there.</li>
+          </ol>
+          <p class="hint">Chargers, speakers, laptops and steel also bend the field. When it alarms, point the Lens finder at the same spot to look for the lens.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RADIO (Wi-Fi / Bluetooth / network) -->
+    <div class="scr fs page" id="radio" hidden>
+      <div class="page-top"><button class="icon-btn" id="rBack" type="button" aria-label="Back"><svg><use href="#i-back"/></svg></button><span class="where" id="rTitle">Wi-Fi scan</span><span></span></div>
+      <div class="radio-hero">
+        <div class="radar-anim sm" id="rAnim" aria-hidden="true"><i></i><i></i><i></i><b></b><em></em></div>
+        <div><b id="rStatus">Scanning…</b><small id="rWhy"></small></div>
+      </div>
+      <div class="rprog"><i><u id="rProg"></u></i></div>
+      <div class="radio-sum" id="rSummary"></div>
+      <ol class="radio-list" id="rList"></ol>
+      <p class="hint" id="rHint"></p>
+      <div class="btns"><button class="btn" id="rAgain" type="button">Scan again</button><button class="btn pri" id="rDone" type="button">Done</button></div>
+    </div>
+
+    <!-- TWO-WAY MIRROR TEST -->
+    <div class="scr fs page" id="mirror" hidden>
+      <div class="page-top"><button class="icon-btn" id="mirBack" type="button" aria-label="Back"><svg><use href="#i-back"/></svg></button><span class="where">Mirror test</span><span id="mirStep">1 / 3</span></div>
+      <div class="mir-view" id="mirView" hidden><video id="mirVideo" playsinline muted autoplay></video><span class="mir-tag">FLASH ON · EXPOSURE UP</span></div>
+      <div class="card mir-card">
+        <div class="mir-ill" id="mirIll" aria-hidden="true"></div>
+        <h2 id="mirTitle">Fingernail test</h2>
+        <p id="mirText"></p>
+        <div class="btns" id="mirBtns"></div>
+      </div>
+      <ol class="mir-dots" id="mirDots"><li></li><li></li><li></li></ol>
+    </div>
+
+    <!-- REPORT -->
+    <div class="scr rep" id="report" hidden></div>
+
+    <!-- FIRST RUN -->
+    <div class="onboard" id="onboard" hidden>
+      <div class="ob-slides" id="obSlides"></div>
+      <ol class="ob-dots" id="obDots"></ol>
+      <div class="ob-btns"><button class="btn ghost" id="obSkip" type="button">Skip</button><button class="btn pri" id="obNext" type="button">Next</button></div>
+    </div>
+
+    <!-- SOS -->
+    <div class="sheet-modal" id="sos" hidden role="dialog" aria-labelledby="sosH">
+      <div class="sm-card">
+        <div class="grab"></div>
+        <h2 id="sosH">Feel unsafe?</h2>
+        <p>Help is one tap away. Nothing is sent until you choose.</p>
+        <a class="sos-big" href="tel:112"><span class="sb-ic"><svg><use href="#i-phone"/></svg></span><span><b>Call 112</b><small>Police · emergency</small></span></a>
+        <button class="sos-row" type="button" id="sosShare"><span class="r-ic g-blue"><svg><use href="#i-pin"/></svg></span><span><b>Share my location</b><small id="sosShareSub">Send a map link to someone you trust</small></span></button>
+        <button class="sos-row" type="button" id="sosCall"><span class="r-ic g-slate"><svg><use href="#i-phone"/></svg></span><span><b>Fake call</b><small>Your phone rings, so you have a reason to leave</small></span></button>
+        <button class="sos-row" type="button" id="sosSiren"><span class="r-ic g-red"><svg><use href="#i-sound"/></svg></span><span><b>Siren</b><small>Loud alarm with the flash blinking</small></span></button>
+        <a class="sos-row" href="tel:181"><span class="r-ic g-violet"><svg><use href="#i-phone"/></svg></span><span><b>Call 181</b><small>Women helpline</small></span></a>
+        <a class="sos-row" href="tel:1930"><span class="r-ic g-amber"><svg><use href="#i-phone"/></svg></span><span><b>Call 1930</b><small>Cyber crime helpline</small></span></a>
+        <button class="btn ghost wide" type="button" id="sosClose">Close</button>
+      </div>
+    </div>
+    <div class="sheet-modal" id="fcSheet" hidden role="dialog" aria-labelledby="fcSheetH">
+      <div class="sm-card">
+        <div class="grab"></div>
+        <h2 id="fcSheetH">Fake call</h2>
+        <p>Your phone rings like a real call, so you have a reason to leave. Keep TwinGaze open until it rings.</p>
+        <label class="field"><span>Caller</span><input id="fcWho" autocomplete="off" maxlength="30" placeholder="Mom"></label>
+        <div class="seg seg-wide fc-when" role="group" aria-label="When">
+          <button type="button" data-fc="0" aria-pressed="false">Now</button>
+          <button type="button" data-fc="10" aria-pressed="true">10 s</button>
+          <button type="button" data-fc="30" aria-pressed="false">30 s</button>
+          <button type="button" data-fc="60" aria-pressed="false">1 min</button>
+        </div>
+        <button class="btn pri wide" type="button" id="fcGo">Start</button>
+        <button class="btn ghost wide" type="button" id="fcClose">Close</button>
+      </div>
+    </div>
+
+    <div class="sheet-modal" id="vidSheet" hidden role="dialog" aria-labelledby="vidSheetH">
+      <div class="sm-card">
+        <div class="grab"></div>
+        <h2 id="vidSheetH">Recorded video</h2>
+        <p>Every frame is checked for camera shapes and lens glints. A recording has no flash or magnetic test.</p>
+        <button class="sos-row" type="button" id="vidRef"><span class="r-ic g-red"><svg><use href="#i-video"/></svg></span><span><b>Hackathon hall · reference</b><small>iQOO Hackathon, Hyderabad · 2 CCTV cameras on the ceiling · 9 s</small></span></button>
+        <button class="sos-row" type="button" id="vidPick"><span class="r-ic g-slate"><svg><use href="#i-video"/></svg></span><span><b>Choose a video</b><small>From this phone's gallery or files</small></span></button>
+        <button class="btn ghost wide" type="button" id="vidClose">Close</button>
+      </div>
+    </div>
+
+    <div class="fcall" id="fcall" hidden role="dialog" aria-label="Incoming call">
+      <div class="fc-top"><small id="fcState">Incoming call</small><h1 id="fcName">Mom</h1><p id="fcSub">Mobile</p></div>
+      <div class="fc-av" id="fcAv" aria-hidden="true">M</div>
+      <div class="fc-btns" id="fcRingBtns">
+        <button class="fc-no" type="button" id="fcDecline" aria-label="Decline"><svg><use href="#i-phone"/></svg></button>
+        <button class="fc-yes" type="button" id="fcAccept" aria-label="Accept"><svg><use href="#i-phone"/></svg></button>
+      </div>
+      <div class="fc-btns" id="fcTalkBtns" hidden><button class="fc-no" type="button" id="fcEnd" aria-label="End call"><svg><use href="#i-phone"/></svg></button></div>
+    </div>
+
+    <div class="siren" id="sirenOv" hidden role="alertdialog" aria-label="Alarm">
+      <div class="siren-in"><b>ALARM</b><p>Press stop when you are safe</p><button class="siren-stop" type="button" id="sirenStop">STOP</button></div>
+    </div>
+  </section>
+
+  <aside class="side" aria-label="Scan log and sensors">
+    <div class="side-h"><b>Scan log</b><span>each step, as it happens</span></div>
+    <div class="sens">
+      <div class="eyebrow">Sensors</div>
+      <dl id="sensList"></dl>
+    </div>
+    <ol class="log" id="log"></ol>
+  </aside>
+</main>
+
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button type="button" data-go="home" aria-current="page"><svg><use href="#i-home"/></svg><span>Home</span></button>
+  <button type="button" data-go="tools"><svg><use href="#i-grid"/></svg><span>Detectors</span></button>
+  <button type="button" class="tab-scan" id="navScan" aria-label="Start full room scan"><svg><use href="#i-scan"/></svg></button>
+  <button type="button" data-go="history"><svg><use href="#i-history"/></svg><span>History</span></button>
+  <button type="button" data-go="settings"><svg><use href="#i-gear"/></svg><span>Settings</span></button>
+</nav>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="js/native.js"></script>
+<script src="js/detector.js"></script>
+<script src="js/sensors.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/recognizer.js"></script>
+<script src="js/radio.js"></script>
+<script src="js/spyware-db.js"></script>
+<script src="js/guard.js"></script>
+<script src="js/net.js"></script>
+<script src="js/trackers.js"></script>
+<script src="js/safety.js"></script>
+<script src="js/agent.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
